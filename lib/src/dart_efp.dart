@@ -72,25 +72,31 @@ class Efp {
     if (lengthData > dmtu) {
       //split the data
       final listData = _splitData(data);
-      bool isFirstUnit = true;
-      for (Uint8List data in listData) {
-        //Write data to the socket
-        if (isFirstUnit) {
-          var combinedData = Uint8List.fromList(
-              [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
 
-          conn.add(combinedData);
-          isFirstUnit = false;
-        } else {
-          conn.add(data);
-        }
+      for (Uint8List data in listData) {
+        bytesLengthData.buffer
+            .asByteData()
+            .setInt32(0, data.length, Endian.big);
+        //Write data to the socket
+        var combinedData = Uint8List.fromList(
+            [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
+
+        conn.add(combinedData);
       }
+      //send end channel
+      //id by empty tag and sizeData
+      var combinedData =
+          Uint8List.fromList([...bytesId, ...Uint8List(16), ...Uint8List(4)]);
+      conn.add(combinedData);
 
       ///if is normal
     } else {
       Uint8List combinedData = Uint8List.fromList(
           [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
       //Write data to the socket
+      conn.add(combinedData);
+      combinedData =
+          Uint8List.fromList([...bytesId, ...Uint8List(16), ...Uint8List(4)]);
       conn.add(combinedData);
     }
   }

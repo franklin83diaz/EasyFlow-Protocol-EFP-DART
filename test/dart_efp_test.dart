@@ -26,7 +26,7 @@ void main() {
       await Future.delayed(Duration(seconds: 1));
       final socket = await Socket.connect('127.0.0.1', 3500);
 
-      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5);
+      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
       efp.send(utf8.encode('{"status":"ok"}'), dart_efp.Tag('tag01'));
       efp.send(utf8.encode('{"status":"ok2"}'), dart_efp.Tag('tag002'));
       await Future.delayed(Duration(seconds: 1));
@@ -46,21 +46,27 @@ Future<void> serverTest() async {
     print('Client connected: ${socket.remoteAddress}:${socket.remotePort}');
     // listen for incoming connections
     //create buffer for the data
+
     socket.listen((data) {
+      //print console text color green
+      print('\x1B[32m');
+      print(utf8.decode(data));
+      print('\x1B[0m');
       // Add the incoming data to the buffer
+
       buffer.add(data);
-      print('Data Received: ${data.length} bytes');
 
       // header is complete 22 bytes
       while (buffer.length > 22) {
         // Convert the buffer to a list of bytes
         var availableData = buffer.toBytes();
+        // if is header print the header
 
         // extract the header
         final idBytes = availableData.sublist(0, 2);
         final tagBytes = availableData.sublist(2, 18);
         final lengthBytes = availableData.sublist(18, 22);
-        final int recoveredIdChannel = Uint8List.fromList(idBytes)
+        final int idChannel = Uint8List.fromList(idBytes)
             .buffer
             .asByteData()
             .getUint16(0, Endian.big);
@@ -70,18 +76,25 @@ Future<void> serverTest() async {
             .getUint32(0, Endian.big);
 
         //Print the header
-        print("id Channel: $recoveredIdChannel");
+        print("id Channel: $idChannel");
         print("tag: ${utf8.decode(tagBytes)}");
         print("length Data: $lengthData");
 
         //set the total length of the message
-        int totalLengthData = 22 + lengthData;
+        int start = 22;
+        int totalLengthData = start + lengthData;
 
         // check if the buffer has enough data to process
         if (availableData.length >= totalLengthData) {
           // decode the message
-          var message = utf8.decode(availableData.sublist(22, totalLengthData));
-          print('Data Received: $message');
+          var message =
+              utf8.decode(availableData.sublist(start, totalLengthData));
+
+          if (lengthData == 0 && message.isEmpty) {
+            print('End of Channel $idChannel');
+          } else {
+            print('Data Received: $message');
+          }
 
           // remove the processed message from the buffer
           buffer.clear();
