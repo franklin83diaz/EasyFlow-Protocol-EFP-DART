@@ -17,7 +17,7 @@ import 'package:dart_efp/src/tags.dart';
 ///  id,    TAG                    ,  SIZE , DATA
 /// _ _, _ _ _ _ _ _ _ _ _ _ _ _ _ , _ _ _ , AF02E...
 ///
-/// Efp use 21 bytes for the header of Unit (id, tag, sizeData)
+/// Efp use 22 bytes for the header of Unit (id, tag, sizeData)
 /// Split the data in parts of DMTU bytes and send it.this is for can send more
 /// of data in the same time. using channels each channel can send a data with a
 /// DMTU each time.
@@ -56,16 +56,16 @@ class Efp {
   void send(Uint8List data, Tag tag) {
     final lengthData = data.length;
 
-    /// 21 bytes for the header of Unit (id, tag, sizeData)
+    /// 22 bytes for the header of Unit (id, tag, sizeData)
     // sizeData 3 bytes
     final bytesId = Uint8List(2);
     idChannel++;
     bytesId.buffer.asByteData().setInt16(0, idChannel, Endian.big);
+
     // tag 16 bytes
     final bytesTag = Uint8List(16);
     bytesTag.buffer.asUint8List().setAll(0, tag.valor.codeUnits);
-    // sizeData 3 bytes
-    final bytesLengthData = Uint8List(3);
+    final bytesLengthData = Uint8List(4);
     bytesLengthData.buffer.asByteData().setInt32(0, lengthData, Endian.big);
 
     /// if is bigger
@@ -76,22 +76,21 @@ class Efp {
       for (Uint8List data in listData) {
         //Write data to the socket
         if (isFirstUnit) {
-          data.addAll(bytesLengthData);
-          data.addAll(bytesTag);
-          data.addAll(bytesId);
+          var combinedData = Uint8List.fromList(
+              [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
+          conn.add(combinedData);
+          isFirstUnit = false;
+        } else {
+          conn.add(data);
         }
-        conn.add(data);
       }
 
       ///if is normal
     } else {
-      //add the tag, id and sizeData to data
-      data.addAll(bytesLengthData);
-      data.addAll(bytesTag);
-      data.addAll(bytesId);
-
+      Uint8List combinedData = Uint8List.fromList(
+          [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
       //Write data to the socket
-      conn.add(data);
+      conn.add(combinedData);
     }
   }
 }
