@@ -78,6 +78,7 @@ class Efp {
         if (isFirstUnit) {
           var combinedData = Uint8List.fromList(
               [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
+
           conn.add(combinedData);
           isFirstUnit = false;
         } else {

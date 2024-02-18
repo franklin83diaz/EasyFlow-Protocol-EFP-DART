@@ -26,8 +26,11 @@ void main() {
       await Future.delayed(Duration(seconds: 1));
       final socket = await Socket.connect('127.0.0.1', 3500);
 
-      dart_efp.Efp efp = dart_efp.Efp(socket);
+      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5);
       efp.send(utf8.encode('{"status":"ok"}'), dart_efp.Tag('tag01'));
+      efp.send(utf8.encode('{"status":"ok2"}'), dart_efp.Tag('tag002'));
+      await Future.delayed(Duration(seconds: 1));
+      efp.send(utf8.encode('{"status":"ok3"}'), dart_efp.Tag('tag003'));
       await Future.delayed(Duration(seconds: 5));
     });
   });
@@ -37,25 +40,59 @@ Future<void> serverTest() async {
   // Create a server socket that listens on a specified IP address and port.
   var server = await ServerSocket.bind(InternetAddress.anyIPv4, 3500);
   print('Server Running on Port: ${server.port}...');
-
+  // Create a BytesBuilder and add the incoming data to it
+  final buffer = BytesBuilder();
   await for (var socket in server) {
     print('Client connected: ${socket.remoteAddress}:${socket.remotePort}');
     // listen for incoming connections
+    //create buffer for the data
     socket.listen((data) {
-      final idBytes = data.sublist(0, 2);
-      final lengthBytes = data.sublist(18, 22);
+      // Add the incoming data to the buffer
+      buffer.add(data);
+      print('Data Received: ${data.length} bytes');
 
-      final int recoveredIdChannel =
-          idBytes.buffer.asByteData().getUint16(0, Endian.big);
-      print("id Channel: $recoveredIdChannel");
+      // header is complete 22 bytes
+      while (buffer.length > 22) {
+        // Convert the buffer to a list of bytes
+        var availableData = buffer.toBytes();
 
-      final int recoveredLengthData =
-          lengthBytes.buffer.asByteData().getUint32(0, Endian.big);
-      print("length Data: $recoveredLengthData");
+        // extract the header
+        final idBytes = availableData.sublist(0, 2);
+        final tagBytes = availableData.sublist(2, 18);
+        final lengthBytes = availableData.sublist(18, 22);
+        final int recoveredIdChannel = Uint8List.fromList(idBytes)
+            .buffer
+            .asByteData()
+            .getUint16(0, Endian.big);
+        final int lengthData = Uint8List.fromList(lengthBytes)
+            .buffer
+            .asByteData()
+            .getUint32(0, Endian.big);
 
-      // decode the incoming data
-      var message = utf8.decode(data);
-      print('Data Received: $message');
+        //Print the header
+        print("id Channel: $recoveredIdChannel");
+        print("tag: ${utf8.decode(tagBytes)}");
+        print("length Data: $lengthData");
+
+        //set the total length of the message
+        int totalLengthData = 22 + lengthData;
+
+        // check if the buffer has enough data to process
+        if (availableData.length >= totalLengthData) {
+          // decode the message
+          var message = utf8.decode(availableData.sublist(22, totalLengthData));
+          print('Data Received: $message');
+
+          // remove the processed message from the buffer
+          buffer.clear();
+          if (availableData.length > totalLengthData) {
+            buffer.add(availableData.sublist(totalLengthData));
+          }
+        } else {
+          //need to wait for more data
+          break;
+        }
+      }
     },
         // handle errors
         onError: (error) {
