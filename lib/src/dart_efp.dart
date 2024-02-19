@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_efp/src/tags.dart';
+
+part 'receive.dart';
+part 'send.dart';
 
 /// This class is the main class of the library, it is responsible for managing
 /// the connection channel and the tags.
@@ -28,6 +32,7 @@ class Efp {
   final Socket conn;
   //this number use 2 bytes max 65535
   int idChannel = 0;
+  final buffer = BytesBuilder();
 
   Efp(this.conn, {this.dmtu = 15000000}) {
     if (dmtu > 15000000) {
@@ -36,68 +41,30 @@ class Efp {
     }
   }
 
-  List<Uint8List> _splitData(data) {
-    final listData = <Uint8List>[];
-
-    for (var i = 0; i < data.length; i += dmtu) {
-      var end = i + dmtu;
-      //check end for not exceed the length of data
-      if (end > data.length) {
-        end = data.length;
-      }
-
-      final chunk = data.sublist(i, end);
-      listData.add(chunk);
+  /// Send data
+  void send(Uint8List data, Tag tag) {
+    idChannel++;
+    if (idChannel > 65535) {
+      idChannel = 1;
     }
-
-    return listData;
+    sendData(data, tag, idChannel, conn, dmtu);
   }
 
-  void send(Uint8List data, Tag tag) {
-    final lengthData = data.length;
+  //receive data
+  void receive(Tags tags) {
+    conn.listen((data) {
+      receiveData(data, tags, buffer);
+    }, onDone: () {
+      print('Connection closed');
+      conn.close();
+    }, onError: (error) {
+      print('Error: $error');
+      conn.close();
+    });
+  }
 
-    /// 22 bytes for the header of Unit (id, tag, sizeData)
-    // sizeData 3 bytes
-    final bytesId = Uint8List(2);
-    idChannel++;
-    bytesId.buffer.asByteData().setInt16(0, idChannel, Endian.big);
-
-    // tag 16 bytes
-    final bytesTag = Uint8List(16);
-    bytesTag.buffer.asUint8List().setAll(0, tag.valor.codeUnits);
-    final bytesLengthData = Uint8List(4);
-    bytesLengthData.buffer.asByteData().setInt32(0, lengthData, Endian.big);
-
-    /// if is bigger
-    if (lengthData > dmtu) {
-      //split the data
-      final listData = _splitData(data);
-
-      for (Uint8List data in listData) {
-        bytesLengthData.buffer
-            .asByteData()
-            .setInt32(0, data.length, Endian.big);
-        //Write data to the socket
-        var combinedData = Uint8List.fromList(
-            [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
-
-        conn.add(combinedData);
-      }
-      //send end channel
-      //id by empty tag and sizeData
-      var combinedData =
-          Uint8List.fromList([...bytesId, ...Uint8List(16), ...Uint8List(4)]);
-      conn.add(combinedData);
-
-      ///if is normal
-    } else {
-      Uint8List combinedData = Uint8List.fromList(
-          [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
-      //Write data to the socket
-      conn.add(combinedData);
-      combinedData =
-          Uint8List.fromList([...bytesId, ...Uint8List(16), ...Uint8List(4)]);
-      conn.add(combinedData);
-    }
+  /// Close the connection
+  void close() {
+    conn.close();
   }
 }

@@ -9,28 +9,43 @@ void main() {
   group('Tags', () {
     test('addTag', () {
       final tags = dart_efp.Tags();
-      final tag = dart_efp.Tag('tag01');
+      final tag = dart_efp.Tag('tag01', () {});
       expect(tags.addTag(tag), isTrue);
       expect(tags.addTag(tag), isFalse);
     });
 
     test('Get new Tag', () {
       final tags = dart_efp.Tags();
-      final tag = tags.getNewTag();
+      final tag = tags.getNewTag(() {});
       expect(tags.addTag(tag), isFalse);
       print(tag);
     });
 
     test('send Data', () async {
       serverTest();
+      // await Future.delayed(Duration(seconds: 1));
+      // final socket = await Socket.connect('127.0.0.1', 3500);
+
+      // dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
+      // efp.send(utf8.encode('{"status":"ok"}'), dart_efp.Tag('tag01', () {}));
+      // efp.send(utf8.encode('{"status":"ok2"}'), dart_efp.Tag('tag002', () {}));
+      // await Future.delayed(Duration(seconds: 1));
+      // efp.send(utf8.encode('{"status":"ok3"}'), dart_efp.Tag('tag003', () {}));
+      // await Future.delayed(Duration(seconds: 3));
+    });
+
+    test('receive Data', () async {
       await Future.delayed(Duration(seconds: 1));
       final socket = await Socket.connect('127.0.0.1', 3500);
 
-      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
-      efp.send(utf8.encode('{"status":"ok"}'), dart_efp.Tag('tag01'));
-      efp.send(utf8.encode('{"status":"ok2"}'), dart_efp.Tag('tag002'));
+      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 500);
+      dart_efp.Tags tags = dart_efp.Tags();
+
+      tags.addTag(dart_efp.Tag('test01', () {}));
+      efp.receive(tags);
       await Future.delayed(Duration(seconds: 1));
-      efp.send(utf8.encode('{"status":"ok3"}'), dart_efp.Tag('tag003'));
+      efp.send(
+          utf8.encode('{"request":"ok"}'), dart_efp.Tag('test-request', () {}));
       await Future.delayed(Duration(seconds: 5));
     });
   });
@@ -57,7 +72,7 @@ Future<void> serverTest() async {
       buffer.add(data);
 
       // header is complete 22 bytes
-      while (buffer.length > 22) {
+      while (buffer.length >= 22) {
         // Convert the buffer to a list of bytes
         var availableData = buffer.toBytes();
         // if is header print the header
@@ -75,11 +90,6 @@ Future<void> serverTest() async {
             .asByteData()
             .getUint32(0, Endian.big);
 
-        //Print the header
-        print("id Channel: $idChannel");
-        print("tag: ${utf8.decode(tagBytes)}");
-        print("length Data: $lengthData");
-
         //set the total length of the message
         int start = 22;
         int totalLengthData = start + lengthData;
@@ -90,10 +100,27 @@ Future<void> serverTest() async {
           var message =
               utf8.decode(availableData.sublist(start, totalLengthData));
 
-          if (lengthData == 0 && message.isEmpty) {
-            print('End of Channel $idChannel');
+          if (lengthData == 0) {
+            print('Server End of Channel $idChannel');
+            print("Server TAG: ${utf8.decode(tagBytes)}");
+
+            //Remove x00 from the tag
+            final String tagString =
+                utf8.decode(tagBytes).replaceAll(RegExp(r'\x00'), '');
+
+            if (tagString == 'test-request') {
+              final bytesTag = Uint8List(16);
+              bytesTag.buffer.asUint8List().setAll(0, 'test-request'.codeUnits);
+              var resp = Uint8List.fromList([
+                ...[0, 1],
+                ...bytesTag,
+                ...[0, 0, 0, 17],
+                ...utf8.encode('{"response":"ok"}')
+              ]);
+              socket.add(resp);
+            }
           } else {
-            print('Data Received: $message');
+            print('Server Data Received: $message');
           }
 
           // remove the processed message from the buffer

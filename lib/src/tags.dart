@@ -19,11 +19,15 @@ class Tags {
     return true;
   }
 
+  get tags {
+    return _tags;
+  }
+
   void removeTag(Tag tag) {
     _tags.remove(tag);
   }
 
-  getNewTag() {
+  getNewTag(Function function) {
     //rand characters
     List chars = 'abcdefghijklmnopqrstuvwxyz'.split('');
     var random = Random();
@@ -36,22 +40,17 @@ class Tags {
     for (var i = 0; i < 3; i++) {
       tag += chars[random.nextInt(chars.length)];
     }
-    return Tag(tag.toString());
+    return Tag(tag.toString(), function);
   }
 }
 
 class Tag {
   final String _valor;
+  final Function _function;
+  List<int> _data = [];
 
-  Tag(this._valor) {
+  Tag(this._valor, this._function) {
     if (_valor.length > 16) {
-      throw ArgumentError('the string exceeds the maximum size of 16 bytes.');
-    }
-  }
-
-  //set
-  set valor(String valor) {
-    if (valor.length > 16) {
       throw ArgumentError('the string exceeds the maximum size of 16 bytes.');
     }
   }
@@ -59,6 +58,20 @@ class Tag {
   //get
   String get valor {
     return _valor;
+  }
+
+  //get function
+  Function get function {
+    return _function;
+  }
+
+  //set data
+  set data(List<int> data) {
+    _data = data;
+  }
+
+  List<int> get data {
+    return _data;
   }
 
   @override
