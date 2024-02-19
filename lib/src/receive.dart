@@ -1,8 +1,8 @@
 part of "dart_efp.dart";
 
 void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
-  //print console text color green
-  print('\x1B[32m');
+  //print console text color blue
+  print('\x1B[34m');
   print(utf8.decode(data));
   print('\x1B[0m');
 
@@ -26,14 +26,19 @@ void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
         .buffer
         .asByteData()
         .getUint32(0, Endian.big);
+    final tagValue = tagBytesToString(tagBytes);
 
     //Print the header
     print("id Channel: $idChannel");
     print("tag: ${utf8.decode(tagBytes)}");
     print("length Data: $lengthData");
 
-    Tag tag = tags.tags
-        .firstWhere((element) => element.valor == utf8.decode(tagBytes));
+    Tag tag = tags.tags.firstWhere((element) => element.valor == tagValue,
+        orElse: () => Tag('', () {}));
+    if (tag.valor == '') {
+      print('Tag not found: $tagValue');
+      print("in List: ${tags.tags}");
+    }
 
     //set the total length of the message
     int start = 22;
@@ -43,7 +48,7 @@ void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
     if (availableData.length >= totalLengthData) {
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
-        print('Data Received:::: ${utf8.decode(tag.data)}');
+        tag.function(tag.data);
       } else {
         tag.data.addAll(availableData.sublist(start, totalLengthData));
       }

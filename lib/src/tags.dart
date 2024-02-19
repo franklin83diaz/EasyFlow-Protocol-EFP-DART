@@ -23,6 +23,11 @@ class Tags {
     return _tags;
   }
 
+  getTag(String tag) {
+    return _tags.firstWhere((element) => element.valor == tag,
+        orElse: () => Tag('', () {}));
+  }
+
   void removeTag(Tag tag) {
     _tags.remove(tag);
   }

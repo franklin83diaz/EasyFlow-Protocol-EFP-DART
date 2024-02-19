@@ -42,10 +42,15 @@ void main() {
       dart_efp.Tags tags = dart_efp.Tags();
 
       tags.addTag(dart_efp.Tag('test01', () {}));
+      //! TODO: change manage tags
+      tags.addTag(dart_efp.Tag('test-request', (data) {
+        print(utf8.decode(data));
+      }));
       efp.receive(tags);
       await Future.delayed(Duration(seconds: 1));
-      efp.send(
-          utf8.encode('{"request":"ok"}'), dart_efp.Tag('test-request', () {}));
+      //! TODO: change manage tags
+      // automatic add tag to tags when send data
+      efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
       await Future.delayed(Duration(seconds: 5));
     });
   });
@@ -118,6 +123,12 @@ Future<void> serverTest() async {
                 ...utf8.encode('{"response":"ok"}')
               ]);
               socket.add(resp);
+              var end = Uint8List.fromList([
+                ...[0, 1],
+                ...bytesTag,
+                ...[0, 0, 0, 0]
+              ]);
+              socket.add(end);
             }
           } else {
             print('Server Data Received: $message');

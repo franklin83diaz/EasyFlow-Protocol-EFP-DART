@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_efp/src/tags.dart';
+import 'package:dart_efp/src/utils/tag_bytes_to_string.dart';
 
 part 'receive.dart';
 part 'send.dart';
