@@ -23,7 +23,7 @@ class Tags {
     return _tags;
   }
 
-  getTag(String tag) {
+  Tag getTag(String tag) {
     return _tags.firstWhere((element) => element.valor == tag,
         orElse: () => Tag('', () {}));
   }
@@ -32,7 +32,7 @@ class Tags {
     _tags.remove(tag);
   }
 
-  getNewTag(Function function) {
+  Tag getNewTag(Function function) {
     //rand characters
     List chars = 'abcdefghijklmnopqrstuvwxyz'.split('');
     var random = Random();
@@ -45,7 +45,8 @@ class Tags {
     for (var i = 0; i < 3; i++) {
       tag += chars[random.nextInt(chars.length)];
     }
-    return Tag(tag.toString(), function);
+    tags.add(Tag(tag, function));
+    return Tag(tag, function);
   }
 }
 

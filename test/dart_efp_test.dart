@@ -41,16 +41,16 @@ void main() {
       dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 500);
       dart_efp.Tags tags = dart_efp.Tags();
 
-      tags.addTag(dart_efp.Tag('test01', () {}));
-      //! TODO: change manage tags
-      tags.addTag(dart_efp.Tag('test-request', (data) {
-        print(utf8.decode(data));
-      }));
+      //tags.addTag(dart_efp.Tag('test01', () {}));
+      // tags.addTag(dart_efp.Tag('test-request', (data) {
+      //   print(utf8.decode(data));
+      // }));
       efp.receive(tags);
       await Future.delayed(Duration(seconds: 1));
-      //! TODO: change manage tags
-      // automatic add tag to tags when send data
-      efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
+      //efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
+      efp.send(utf8.encode('{"request2":"ok2"}'), tags.getNewTag((data) {
+        print(utf8.decode(data));
+      }));
       await Future.delayed(Duration(seconds: 5));
     });
   });
@@ -115,7 +115,7 @@ Future<void> serverTest() async {
 
             if (tagString == 'test-request') {
               final bytesTag = Uint8List(16);
-              bytesTag.buffer.asUint8List().setAll(0, 'test-request'.codeUnits);
+              bytesTag.buffer.asUint8List().setAll(0, tagString.codeUnits);
               var resp = Uint8List.fromList([
                 ...[0, 1],
                 ...bytesTag,
@@ -125,6 +125,26 @@ Future<void> serverTest() async {
               socket.add(resp);
               var end = Uint8List.fromList([
                 ...[0, 1],
+                ...bytesTag,
+                ...[0, 0, 0, 0]
+              ]);
+              socket.add(end);
+            }
+
+            //if tag value starts with a number
+            if (tagString.startsWith(RegExp(r'[0-9]'))) {
+              final bytesTag = Uint8List(16);
+              bytesTag.buffer.asUint8List().setAll(0, tagString.codeUnits);
+              var resp = Uint8List.fromList([
+                ...[0, 2],
+                ...bytesTag,
+                ...[0, 0, 0, 44],
+                ...utf8.encode('{"response":"ok2", "tag":"$tagString"}')
+              ]);
+
+              socket.add(resp);
+              var end = Uint8List.fromList([
+                ...[0, 2],
                 ...bytesTag,
                 ...[0, 0, 0, 0]
               ]);
