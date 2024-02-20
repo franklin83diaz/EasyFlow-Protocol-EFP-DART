@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_efp/dart_efp.dart' as dart_efp;
+import 'package:dart_efp/src/utils/tag_bytes_to_string.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -24,15 +25,18 @@ void main() {
 
     test('send Data', () async {
       serverTest();
-      // await Future.delayed(Duration(seconds: 1));
-      // final socket = await Socket.connect('127.0.0.1', 3500);
+      await Future.delayed(Duration(seconds: 1));
+      final socket = await Socket.connect('127.0.0.1', 3500);
 
-      // dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
-      // efp.send(utf8.encode('{"status":"ok"}'), dart_efp.Tag('tag01', () {}));
-      // efp.send(utf8.encode('{"status":"ok2"}'), dart_efp.Tag('tag002', () {}));
-      // await Future.delayed(Duration(seconds: 1));
-      // efp.send(utf8.encode('{"status":"ok3"}'), dart_efp.Tag('tag003', () {}));
-      // await Future.delayed(Duration(seconds: 3));
+      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
+      efp.send(
+          utf8.encode('{"status":"ok"}'), dart_efp.ConnHandler('tag01', () {}));
+      efp.send(utf8.encode('{"status":"ok2"}'),
+          dart_efp.ConnHandler('tag002', () {}));
+      await Future.delayed(Duration(seconds: 1));
+      efp.send(utf8.encode('{"status":"ok3"}'),
+          dart_efp.ConnHandler('tag003', () {}));
+      await Future.delayed(Duration(seconds: 3));
     });
 
     test('receive Data', () async {
@@ -42,13 +46,10 @@ void main() {
       final efp = dart_efp.Efp(socket, dmtu: 500);
       final connsHandler = dart_efp.ConnsHandler();
 
-      //tags.addTag(dart_efp.Tag('test01', () {}));
-      // tags.addTag(dart_efp.Tag('test-request', (data) {
-      //   print(utf8.decode(data));
-      // }));
       efp.receive(connsHandler);
       await Future.delayed(Duration(seconds: 1));
-      //efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
+      efp.send(
+          utf8.encode('{"request":"ok"}'), connsHandler.get('test-request'));
       var reqLogin = connsHandler.req("login", (data) {
         print(utf8.decode(data));
       });
@@ -133,24 +134,30 @@ Future<void> serverTest() async {
               socket.add(end);
             }
 
-            //if tag value starts with a number
+            //if tag value starts with a number is request
             if (tagString.startsWith(RegExp(r'[0-9]'))) {
-              final bytesTag = Uint8List(16);
-              bytesTag.buffer.asUint8List().setAll(0, tagString.codeUnits);
-              var resp = Uint8List.fromList([
-                ...[0, 2],
-                ...bytesTag,
-                ...[0, 0, 0, 44],
-                ...utf8.encode('{"response":"ok2", "tag":"$tagString"}')
-              ]);
+              String tag = removeNull(tagString.substring(8));
+              print(tag);
+              print(tag.length);
+              if (tag == "login") {
+                final bytesTag = Uint8List(16);
 
-              socket.add(resp);
-              var end = Uint8List.fromList([
-                ...[0, 2],
-                ...bytesTag,
-                ...[0, 0, 0, 0]
-              ]);
-              socket.add(end);
+                bytesTag.buffer.asUint8List().setAll(0, tagString.codeUnits);
+                var resp = Uint8List.fromList([
+                  ...[0, 2],
+                  ...bytesTag,
+                  ...[0, 0, 0, '{"loginSys":"ok", "tag":"$tagString"}'.length],
+                  ...utf8.encode('{"loginSys":"ok", "tag":"$tagString"}')
+                ]);
+
+                socket.add(resp);
+                var end = Uint8List.fromList([
+                  ...[0, 2],
+                  ...bytesTag,
+                  ...[0, 0, 0, 0]
+                ]);
+                socket.add(end);
+              }
             }
           } else {
             print('Server Data Received: $message');

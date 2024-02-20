@@ -33,7 +33,6 @@ class Efp {
   final Socket conn;
   //this number use 2 bytes max 65535
   int idChannel = 0;
-  final buffer = BytesBuilder();
 
   Efp(this.conn, {this.dmtu = 15000000}) {
     if (dmtu > 15000000) {
@@ -53,6 +52,7 @@ class Efp {
 
   //receive data
   void receive(ConnsHandler connsHandler) {
+    final buffer = BytesBuilder();
     conn.listen((data) {
       receiveData(data, connsHandler, buffer);
     }, onDone: () {

@@ -27,19 +27,29 @@ void receiveData(
         .buffer
         .asByteData()
         .getUint32(0, Endian.big);
-    final tagValue = tagBytesToString(tagBytes);
+
+    String tag = tagBytesToString(tagBytes);
 
     //Print the header
     print("id Channel: $idChannel");
-    print("tag: ${utf8.decode(tagBytes)}");
+    print("tag: $tag");
     print("length Data: $lengthData");
 
-    ConnHandler connHandler = connsHandler.getAll.firstWhere(
-        (element) => element.tag == tagValue,
+    //inf tag start with a number
+    if (tag.startsWith(RegExp(r'[0-9]'))) {
+      //remove first 8 characters of the tag and remove x00 from the tag
+      tag = tag.substring(8);
+    }
+
+    final connHandler = connsHandler.getAll.firstWhere(
+        (element) => element.tag == tag,
         orElse: () => ConnHandler('', () {}));
+
     if (connHandler.tag == '') {
-      print('Tag not found: $tagValue');
+      print('Tag not found: $tag');
       print("in List: ${connsHandler.getAll}");
+      buffer.clear();
+      return;
     }
 
     //set the total length of the message
