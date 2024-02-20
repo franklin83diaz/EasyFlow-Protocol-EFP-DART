@@ -1,62 +1,71 @@
-class Tags {
-  final List<Tag> _tags = [];
+class ConnsHandler {
+  final List<ConnHandler> _connsHandler = [];
 
-  Tag addTag(Tag tag) {
+  ConnHandler add(ConnHandler connHandler) {
     //check if the tag already exists
-    if (_tags.contains(tag)) {
-      return tag;
+    if (_connsHandler.contains(connHandler)) {
+      return connHandler;
     }
     //check if the tag starts with a number
     //the tag can't start with a number because the tag is used to identify the
     //tag of type request with the tag automatically generated.
-    if (tag.valor.startsWith(RegExp(r'[0-9]'))) {
+    if (connHandler.tag.startsWith(RegExp(r'[0-9]'))) {
       throw ArgumentError('the tag can\'t start with a number.');
     }
-    _tags.add(tag);
+    _connsHandler.add(connHandler);
 
-    return tag;
+    return connHandler;
   }
 
-  get tags {
-    return _tags;
+  ConnHandler _addReq(ConnHandler connHandler) {
+    //check if the tag already exists
+    if (_connsHandler.contains(connHandler)) {
+      throw ArgumentError('the tag already exists');
+    }
+    _connsHandler.add(connHandler);
+
+    return connHandler;
   }
 
-  Tag getTag(String tag) {
-    return _tags.firstWhere((element) => element.valor == tag,
-        orElse: () => Tag('', () {}));
+  get getAll {
+    return _connsHandler;
   }
 
-  void removeTag(Tag tag) {
-    _tags.remove(tag);
+  ConnHandler get(String tag) {
+    return _connsHandler.firstWhere((element) => element.tag == tag,
+        orElse: () => ConnHandler('', () {}));
   }
 
-  Tag getNewTag(value, Function function) {
-    if (value.length > 8) {
+  void remove(ConnHandler connHandler) {
+    _connsHandler.remove(connHandler);
+  }
+
+  ConnHandler req(String tag, Function function) {
+    if (tag.length > 8) {
       throw ArgumentError('the string exceeds the maximum size of 8 bytes.');
     }
     final String microsecond = DateTime.now().microsecondsSinceEpoch.toString();
-    //remove the last 3 characters of the microsecond
-    String tag = microsecond.substring(5, microsecond.length - 3);
-    //3 characters
+    //remove the 8 characters of the microsecond !note: or convert base256
+    String subTag = microsecond.substring(5, microsecond.length - 3);
 
-    return addTag(Tag(value + tag, function));
+    return _addReq(ConnHandler(subTag + tag, function));
   }
 }
 
-class Tag {
-  final String _valor;
+class ConnHandler {
+  final String _tag;
   final Function _function;
-  List<int> _data = [];
+  List<int> data = [];
 
-  Tag(this._valor, this._function) {
-    if (_valor.length > 16) {
+  ConnHandler(this._tag, this._function) {
+    if (_tag.length > 16) {
       throw ArgumentError('the string exceeds the maximum size of 16 bytes.');
     }
   }
 
   //get
-  String get valor {
-    return _valor;
+  String get tag {
+    return _tag;
   }
 
   //get function
@@ -64,17 +73,8 @@ class Tag {
     return _function;
   }
 
-  //set data
-  set data(List<int> data) {
-    _data = data;
-  }
-
-  List<int> get data {
-    return _data;
-  }
-
   @override
   String toString() {
-    return _valor;
+    return _tag;
   }
 }

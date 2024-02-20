@@ -8,18 +8,18 @@ import 'package:test/test.dart';
 void main() {
   group('Tags', () {
     test('addTag', () {
-      final tags = dart_efp.Tags();
-      final tag = dart_efp.Tag('tag01', () {});
-      expect(tags.addTag(tag), isA<dart_efp.Tag>());
+      final connsHandler = dart_efp.ConnsHandler();
+      final tag01 = dart_efp.ConnHandler('tag01', () {});
+      expect(connsHandler.add(tag01), isA<dart_efp.ConnHandler>());
     });
 
     test('Get new Tag', () {
-      final tags = dart_efp.Tags();
-      final tag = tags.getNewTag("login", () {});
-      expect(tag, isNot(null));
-      expect(tags.addTag(tag), isNot(null));
-      expect(tags.addTag(tag), isNot(null));
-      print(tag);
+      final connsHandler = dart_efp.ConnsHandler();
+      final reqLogin = connsHandler.req("login", () {});
+      expect(reqLogin, isNot(null));
+      expect(connsHandler.add(reqLogin), isNot(null));
+      expect(connsHandler.add(reqLogin), isNot(null));
+      print(reqLogin);
     });
 
     test('send Data', () async {
@@ -39,20 +39,20 @@ void main() {
       await Future.delayed(Duration(seconds: 1));
       final socket = await Socket.connect('127.0.0.1', 3500);
 
-      dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 500);
-      dart_efp.Tags tags = dart_efp.Tags();
+      final efp = dart_efp.Efp(socket, dmtu: 500);
+      final connsHandler = dart_efp.ConnsHandler();
 
       //tags.addTag(dart_efp.Tag('test01', () {}));
       // tags.addTag(dart_efp.Tag('test-request', (data) {
       //   print(utf8.decode(data));
       // }));
-      efp.receive(tags);
+      efp.receive(connsHandler);
       await Future.delayed(Duration(seconds: 1));
       //efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
-      var login = tags.getNewTag("login", (data) {
+      var reqLogin = connsHandler.req("login", (data) {
         print(utf8.decode(data));
       });
-      efp.send(utf8.encode('{"request2":"ok2"}'), login);
+      efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin);
       await Future.delayed(Duration(seconds: 5));
     });
   });

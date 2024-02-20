@@ -1,6 +1,7 @@
 part of "dart_efp.dart";
 
-void sendData(Uint8List data, Tag tag, int idChannel, Socket conn, int dmtu) {
+void sendData(Uint8List data, ConnHandler connHandler, int idChannel,
+    Socket conn, int dmtu) {
   final lengthData = data.length;
 
   /// 22 bytes for the header of Unit (id, tag, sizeData)
@@ -11,7 +12,7 @@ void sendData(Uint8List data, Tag tag, int idChannel, Socket conn, int dmtu) {
 
   // tag 16 bytes
   final bytesTag = Uint8List(16);
-  bytesTag.buffer.asUint8List().setAll(0, tag.valor.codeUnits);
+  bytesTag.buffer.asUint8List().setAll(0, connHandler.tag.codeUnits);
   final bytesLengthData = Uint8List(4);
   bytesLengthData.buffer.asByteData().setInt32(0, lengthData, Endian.big);
 

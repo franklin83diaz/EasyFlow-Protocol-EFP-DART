@@ -1,6 +1,7 @@
 part of "dart_efp.dart";
 
-void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
+void receiveData(
+    Uint8List data, ConnsHandler connsHandler, BytesBuilder buffer) {
   //print console text color blue
   print('\x1B[34m');
   print(utf8.decode(data));
@@ -33,11 +34,12 @@ void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
     print("tag: ${utf8.decode(tagBytes)}");
     print("length Data: $lengthData");
 
-    Tag tag = tags.tags.firstWhere((element) => element.valor == tagValue,
-        orElse: () => Tag('', () {}));
-    if (tag.valor == '') {
+    ConnHandler connHandler = connsHandler.getAll.firstWhere(
+        (element) => element.tag == tagValue,
+        orElse: () => ConnHandler('', () {}));
+    if (connHandler.tag == '') {
       print('Tag not found: $tagValue');
-      print("in List: ${tags.tags}");
+      print("in List: ${connsHandler.getAll}");
     }
 
     //set the total length of the message
@@ -48,9 +50,9 @@ void receiveData(Uint8List data, Tags tags, BytesBuilder buffer) {
     if (availableData.length >= totalLengthData) {
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
-        tag.function(tag.data);
+        connHandler.function(connHandler.data);
       } else {
-        tag.data.addAll(availableData.sublist(start, totalLengthData));
+        connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }
 
       // remove the processed message from the buffer

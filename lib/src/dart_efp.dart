@@ -43,18 +43,18 @@ class Efp {
   }
 
   /// Send data
-  void send(Uint8List data, Tag tag) {
+  void send(Uint8List data, ConnHandler connHandler) {
     idChannel++;
     if (idChannel > 65535) {
       idChannel = 1;
     }
-    sendData(data, tag, idChannel, conn, dmtu);
+    sendData(data, connHandler, idChannel, conn, dmtu);
   }
 
   //receive data
-  void receive(Tags tags) {
+  void receive(ConnsHandler connsHandler) {
     conn.listen((data) {
-      receiveData(data, tags, buffer);
+      receiveData(data, connsHandler, buffer);
     }, onDone: () {
       print('Connection closed');
       conn.close();
