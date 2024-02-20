@@ -10,14 +10,15 @@ void main() {
     test('addTag', () {
       final tags = dart_efp.Tags();
       final tag = dart_efp.Tag('tag01', () {});
-      expect(tags.addTag(tag), isTrue);
-      expect(tags.addTag(tag), isFalse);
+      expect(tags.addTag(tag), isA<dart_efp.Tag>());
     });
 
     test('Get new Tag', () {
       final tags = dart_efp.Tags();
-      final tag = tags.getNewTag(() {});
-      expect(tags.addTag(tag), isFalse);
+      final tag = tags.getNewTag("login", () {});
+      expect(tag, isNot(null));
+      expect(tags.addTag(tag), isNot(null));
+      expect(tags.addTag(tag), isNot(null));
       print(tag);
     });
 
@@ -48,9 +49,10 @@ void main() {
       efp.receive(tags);
       await Future.delayed(Duration(seconds: 1));
       //efp.send(utf8.encode('{"request":"ok"}'), tags.getTag('test-request'));
-      efp.send(utf8.encode('{"request2":"ok2"}'), tags.getNewTag((data) {
+      var login = tags.getNewTag("login", (data) {
         print(utf8.decode(data));
-      }));
+      });
+      efp.send(utf8.encode('{"request2":"ok2"}'), login);
       await Future.delayed(Duration(seconds: 5));
     });
   });

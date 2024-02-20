@@ -1,22 +1,20 @@
-import 'dart:math';
-
 class Tags {
   final List<Tag> _tags = [];
 
-  bool addTag(Tag tag) {
+  Tag addTag(Tag tag) {
     //check if the tag already exists
     if (_tags.contains(tag)) {
-      return false;
+      return tag;
     }
     //check if the tag starts with a number
     //the tag can't start with a number because the tag is used to identify the
     //tag of type request with the tag automatically generated.
     if (tag.valor.startsWith(RegExp(r'[0-9]'))) {
-      return false;
+      throw ArgumentError('the tag can\'t start with a number.');
     }
     _tags.add(tag);
 
-    return true;
+    return tag;
   }
 
   get tags {
@@ -32,21 +30,16 @@ class Tags {
     _tags.remove(tag);
   }
 
-  Tag getNewTag(Function function) {
-    //rand characters
-    List chars = 'abcdefghijklmnopqrstuvwxyz'.split('');
-    var random = Random();
-    String tag = '';
-
+  Tag getNewTag(value, Function function) {
+    if (value.length > 8) {
+      throw ArgumentError('the string exceeds the maximum size of 8 bytes.');
+    }
     final String microsecond = DateTime.now().microsecondsSinceEpoch.toString();
     //remove the last 3 characters of the microsecond
-    tag += microsecond.substring(0, microsecond.length - 3);
+    String tag = microsecond.substring(5, microsecond.length - 3);
     //3 characters
-    for (var i = 0; i < 3; i++) {
-      tag += chars[random.nextInt(chars.length)];
-    }
-    tags.add(Tag(tag, function));
-    return Tag(tag, function);
+
+    return addTag(Tag(value + tag, function));
   }
 }
 
