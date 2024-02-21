@@ -43,7 +43,7 @@ void receiveData(
 
     final connHandler = connsHandler.getAll.firstWhere(
         (element) => element.tag == tag,
-        orElse: () => ConnHandler('', () {}));
+        orElse: () => ConnHandler('', (f, t) {}));
 
     if (connHandler.tag == '') {
       print('Tag not found: $tag');
@@ -60,7 +60,7 @@ void receiveData(
     if (availableData.length >= totalLengthData) {
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
-        connHandler.function(connHandler.data);
+        connHandler.function(connHandler.data, connHandler.tag);
       } else {
         connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }

@@ -10,13 +10,13 @@ void main() {
   group('Tags', () {
     test('addTag', () {
       final connsHandler = dart_efp.ConnsHandler();
-      final tag01 = dart_efp.ConnHandler('tag01', () {});
+      final tag01 = dart_efp.ConnHandler('tag01', (f, t) {});
       expect(connsHandler.add(tag01), isA<dart_efp.ConnHandler>());
     });
 
     test('Get new Tag', () {
       final connsHandler = dart_efp.ConnsHandler();
-      final reqLogin = connsHandler.req("login", () {});
+      final reqLogin = connsHandler.req("login", (f, t) {});
       expect(reqLogin, isNot(null));
       expect(connsHandler.add(reqLogin), isNot(null));
       expect(connsHandler.add(reqLogin), isNot(null));
@@ -29,13 +29,13 @@ void main() {
       final socket = await Socket.connect('127.0.0.1', 3500);
 
       dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
-      efp.send(
-          utf8.encode('{"status":"ok"}'), dart_efp.ConnHandler('tag01', () {}));
+      efp.send(utf8.encode('{"status":"ok"}'),
+          dart_efp.ConnHandler('tag01', (f, t) {}));
       efp.send(utf8.encode('{"status":"ok2"}'),
-          dart_efp.ConnHandler('tag002', () {}));
+          dart_efp.ConnHandler('tag002', (f, t) {}));
       await Future.delayed(Duration(seconds: 1));
       efp.send(utf8.encode('{"status":"ok3"}'),
-          dart_efp.ConnHandler('tag003', () {}));
+          dart_efp.ConnHandler('tag003', (f, t) {}));
       await Future.delayed(Duration(seconds: 3));
     });
 
@@ -50,7 +50,7 @@ void main() {
       await Future.delayed(Duration(seconds: 1));
       efp.send(
           utf8.encode('{"request":"ok"}'), connsHandler.get('test-request'));
-      var reqLogin = connsHandler.req("login", (data) {
+      var reqLogin = connsHandler.req("login", (data, tag) {
         print(utf8.decode(data));
       });
       efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin);

@@ -32,15 +32,17 @@ class ConnsHandler {
   }
 
   ConnHandler get(String tag) {
-    return _connsHandler.firstWhere((element) => element.tag == tag,
-        orElse: () => ConnHandler('', () {}));
+    return _connsHandler.firstWhere(
+      (element) => element.tag == tag,
+      orElse: () => ConnHandler('', (f, t) {}),
+    );
   }
 
   void remove(ConnHandler connHandler) {
     _connsHandler.remove(connHandler);
   }
 
-  ConnHandler req(String tag, Function function) {
+  ConnHandler req(String tag, ActionFunc function) {
     if (tag.length > 8) {
       throw ArgumentError('the string exceeds the maximum size of 8 bytes.');
     }
@@ -52,9 +54,12 @@ class ConnsHandler {
   }
 }
 
+typedef ActionFunc = void Function(List<int>, String);
+
 class ConnHandler {
   final String _tag;
-  final Function _function;
+  final ActionFunc _function;
+
   List<int> data = [];
 
   ConnHandler(this._tag, this._function) {
