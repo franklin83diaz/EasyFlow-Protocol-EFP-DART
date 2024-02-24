@@ -28,17 +28,28 @@ void receiveData(
         .asByteData()
         .getUint32(0, Endian.big);
 
-    String tag = tagBytesToString(tagBytes);
+    String originalTag = tagBytesToString(tagBytes);
+    String tag = originalTag;
 
     //Print the header
     print("id Channel: $idChannel");
-    print("tag: $tag");
+    print("tag: $originalTag");
     print("length Data: $lengthData");
 
-    //inf tag start with a number
-    if (tag.startsWith(RegExp(r'[0-9]'))) {
-      //remove first 8 characters of the tag and remove x00 from the tag
+    //1 request
+    //2 response
+    //3 cancel
+    //if tag start with a number 1, 2, 3
+    if (originalTag.startsWith('1')) {
       tag = tag.substring(8);
+
+      //change original tag to response
+      originalTag = "2${originalTag.substring(1)}";
+    } else if (originalTag.startsWith('2')) {
+      tag = tag.substring(1);
+      originalTag = tag;
+    } else if (originalTag.startsWith('3')) {
+      //!TODO: cancel the request
     }
 
     final connHandler = connsHandler.getAll.firstWhere(
@@ -60,7 +71,8 @@ void receiveData(
     if (availableData.length >= totalLengthData) {
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
-        connHandler.function(connHandler.data, connHandler.tag);
+        // run the function with the data and the original tag
+        connHandler.function(connHandler.data, originalTag);
       } else {
         connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }

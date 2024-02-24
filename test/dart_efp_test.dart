@@ -29,13 +29,10 @@ void main() {
       final socket = await Socket.connect('127.0.0.1', 3500);
 
       dart_efp.Efp efp = dart_efp.Efp(socket, dmtu: 5000);
-      efp.send(utf8.encode('{"status":"ok"}'),
-          dart_efp.ConnHandler('tag01', (f, t) {}));
-      efp.send(utf8.encode('{"status":"ok2"}'),
-          dart_efp.ConnHandler('tag002', (f, t) {}));
+      efp.send(utf8.encode('{"status":"ok"}'), 'tag01');
+      efp.send(utf8.encode('{"status":"ok2"}'), 'tag002');
       await Future.delayed(Duration(seconds: 1));
-      efp.send(utf8.encode('{"status":"ok3"}'),
-          dart_efp.ConnHandler('tag003', (f, t) {}));
+      efp.send(utf8.encode('{"status":"ok3"}'), 'tag003');
       await Future.delayed(Duration(seconds: 3));
     });
 
@@ -48,12 +45,11 @@ void main() {
 
       efp.receive(connsHandler);
       await Future.delayed(Duration(seconds: 1));
-      efp.send(
-          utf8.encode('{"request":"ok"}'), connsHandler.get('test-request'));
+      efp.send(utf8.encode('{"request":"ok"}'), 'test-request');
       var reqLogin = connsHandler.req("login", (data, tag) {
         print(utf8.decode(data));
       });
-      efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin);
+      efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin.tag);
       await Future.delayed(Duration(seconds: 5));
     });
   });

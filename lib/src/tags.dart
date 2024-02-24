@@ -47,10 +47,13 @@ class ConnsHandler {
       throw ArgumentError('the string exceeds the maximum size of 8 bytes.');
     }
     final String microsecond = DateTime.now().microsecondsSinceEpoch.toString();
-    //remove the 8 characters of the microsecond !note: or convert base256
-    String subTag = microsecond.substring(5, microsecond.length - 3);
+    //!OLD remove the 8 characters of the microsecond !note: or convert base256
+    ///remove the 5 characters of the microsecond convert base32
+    String subTag = microsecond.substring(2, microsecond.length - 3);
+    //subTag to base32
+    subTag = int.parse(subTag).toRadixString(32);
 
-    return _addReq(ConnHandler(subTag + tag, function));
+    return _addReq(ConnHandler("$subTag$tag", function));
   }
 }
 

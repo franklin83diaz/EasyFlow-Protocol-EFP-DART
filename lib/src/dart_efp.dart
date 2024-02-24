@@ -42,12 +42,23 @@ class Efp {
   }
 
   /// Send data
-  void send(Uint8List data, ConnHandler connHandler) {
+  /// [data] is the data to send
+  /// [tag] is the tag to identify the data
+  /// [typeData] is the type of data
+  /// 1 is request
+  /// 2 is response
+  /// 3 is cancel
+  void send(Uint8List data, String tag, {int? typeData}) {
     idChannel++;
     if (idChannel > 65535) {
       idChannel = 1;
     }
-    sendData(data, connHandler, idChannel, conn, dmtu);
+    //if tag is more than 7 bytes error
+    if (tag.length > 15) {
+      throw ArgumentError('the string exceeds the maximum size of 15 bytes.');
+    }
+    final sub = typeData == null ? "" : typeData.toString();
+    sendData(data, sub + tag, idChannel, conn, dmtu);
   }
 
   //receive data
