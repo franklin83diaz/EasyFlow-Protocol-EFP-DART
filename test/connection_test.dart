@@ -22,9 +22,9 @@ void main() {
       });
       connsHandler.add(close);
 
-      final login = dart_efp.ConnHandler("login", (data, tag) {
+      final login = dart_efp.ConnHandler("login", (connHandler, tag) {
         print("server process login");
-        Map d = jsonDecode(utf8.decode(data));
+        Map d = jsonDecode(utf8.decode(connHandler.data));
         if (d["user"] == "user01" && d["password"] == "MyPassword") {
           print(" login success");
           print("originalTag: $tag");
@@ -57,14 +57,13 @@ void main() {
     //  efp.receive(connsHandler);
     await Future.delayed(Duration(seconds: 1));
 
-    //!TODO: do not work
-    final reqLogin = connsHandler.req("login", (data, tag) {
-      print("Client:  ${utf8.decode(data)}");
+    final reqLogin = connsHandler.req("login", (connHandler, tag) {
+      print("Client:  ${utf8.decode(connHandler.data)}");
     });
     print("All Handler: ${connsHandler.getAll}");
     efp.send(utf8.encode('{"user":"user01", "password": "MyPassword"}'),
         reqLogin.tag,
-        typeData: 1);
+        action: 1);
 
     await Future.delayed(Duration(seconds: 5));
   });

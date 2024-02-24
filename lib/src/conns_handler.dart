@@ -1,3 +1,5 @@
+import 'dart:async';
+
 class ConnsHandler {
   final List<ConnHandler> _connsHandler = [];
 
@@ -57,11 +59,12 @@ class ConnsHandler {
   }
 }
 
-typedef ActionFunc = void Function(List<int>, String);
+typedef ActionFunc = void Function(ConnHandler, String);
 
 class ConnHandler {
   final String _tag;
   final ActionFunc _function;
+  final StreamController<String> cancel = StreamController.broadcast();
 
   List<int> data = [];
 

@@ -49,10 +49,10 @@ void receiveData(
       tag = tag.substring(1);
       originalTag = tag;
     } else if (originalTag.startsWith('3')) {
-      //!TODO: cancel the request
+      tag = tag.substring(8);
     }
 
-    final connHandler = connsHandler.getAll.firstWhere(
+    ConnHandler connHandler = connsHandler.getAll.firstWhere(
         (element) => element.tag == tag,
         orElse: () => ConnHandler('', (f, t) {}));
 
@@ -60,6 +60,12 @@ void receiveData(
       print('Tag not found: $tag');
       print("in List: ${connsHandler.getAll}");
       buffer.clear();
+      return;
+    }
+
+    //if is cancel add the original tag to the cancel stream
+    if (originalTag.startsWith('3')) {
+      connHandler.cancel.add(originalTag.substring(1));
       return;
     }
 
@@ -72,7 +78,7 @@ void receiveData(
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
         // run the function with the data and the original tag
-        connHandler.function(connHandler.data, originalTag);
+        connHandler.function(connHandler, originalTag);
       } else {
         connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }

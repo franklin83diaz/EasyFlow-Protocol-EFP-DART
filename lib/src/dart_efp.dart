@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dart_efp/src/tags.dart';
+import 'package:dart_efp/src/conns_handler.dart';
 import 'package:dart_efp/src/utils/tag_bytes_to_string.dart';
 
 part 'receive.dart';
@@ -48,7 +48,7 @@ class Efp {
   /// 1 is request
   /// 2 is response
   /// 3 is cancel
-  void send(Uint8List data, String tag, {int? typeData}) {
+  void send(Uint8List data, String tag, {int? action}) {
     idChannel++;
     if (idChannel > 65535) {
       idChannel = 1;
@@ -57,7 +57,7 @@ class Efp {
     if (tag.length > 15) {
       throw ArgumentError('the string exceeds the maximum size of 15 bytes.');
     }
-    final sub = typeData == null ? "" : typeData.toString();
+    final sub = action == null ? "" : action.toString();
     sendData(data, sub + tag, idChannel, conn, dmtu);
   }
 

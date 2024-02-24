@@ -46,8 +46,8 @@ void main() {
       efp.receive(connsHandler);
       await Future.delayed(Duration(seconds: 1));
       efp.send(utf8.encode('{"request":"ok"}'), 'test-request');
-      var reqLogin = connsHandler.req("login", (data, tag) {
-        print(utf8.decode(data));
+      var reqLogin = connsHandler.req("login", (connHandler, tag) {
+        print(utf8.decode(connHandler.data));
       });
       efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin.tag);
       await Future.delayed(Duration(seconds: 5));
