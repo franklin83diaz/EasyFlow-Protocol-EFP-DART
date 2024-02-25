@@ -65,6 +65,7 @@ void receiveData(
 
     //if is cancel add the original tag to the cancel stream
     if (originalTag.startsWith('3')) {
+      //TODO: separate the cancel stream with spaces o commas for split
       connHandler.cancel.add(originalTag.substring(1));
       buffer.clear();
       return;
@@ -81,6 +82,8 @@ void receiveData(
         // run the function with the data and the original tag
         connHandler.function(connHandler, originalTag);
       } else {
+        // TODO: maybe data need separate for each chanel or unit
+        //
         connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }
 
