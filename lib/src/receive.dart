@@ -83,6 +83,7 @@ void receiveData(
         connHandler.function(connHandler, originalTag);
       } else {
         // TODO: maybe data need separate for each chanel or unit
+        // use de id channel to separate the data
         //
         connHandler.data.addAll(availableData.sublist(start, totalLengthData));
       }
