@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -54,7 +53,7 @@ class Efp {
       idChannel = 1;
     }
     //if tag is more than 7 bytes error
-    if (tag.length > 15) {
+    if (tag.length > 15 && action != null) {
       throw ArgumentError('the string exceeds the maximum size of 15 bytes.');
     }
     final sub = action == null ? "" : action.toString();

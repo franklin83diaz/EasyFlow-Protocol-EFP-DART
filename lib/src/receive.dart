@@ -3,9 +3,9 @@ part of "dart_efp.dart";
 void receiveData(
     Uint8List data, ConnsHandler connsHandler, BytesBuilder buffer) {
   //print console text color blue
-  print('\x1B[34m');
-  print(utf8.decode(data));
-  print('\x1B[0m');
+  // print('\x1B[34m');
+  // print(utf8.decode(data));
+  // print('\x1B[0m');
 
   buffer.add(data);
 
@@ -16,13 +16,13 @@ void receiveData(
     // if is header print the header
 
     // extract the header
-    final idBytes = availableData.sublist(0, 2);
+    // final idBytes = availableData.sublist(0, 2);
     final tagBytes = availableData.sublist(2, 18);
     final lengthBytes = availableData.sublist(18, 22);
-    final int idChannel = Uint8List.fromList(idBytes)
-        .buffer
-        .asByteData()
-        .getUint16(0, Endian.big);
+    // final int idChannel = Uint8List.fromList(idBytes)
+    //     .buffer
+    //     .asByteData()
+    //     .getUint16(0, Endian.big);
     final int lengthData = Uint8List.fromList(lengthBytes)
         .buffer
         .asByteData()
@@ -32,9 +32,9 @@ void receiveData(
     String tag = originalTag;
 
     //Print the header
-    print("id Channel: $idChannel");
-    print("tag: $originalTag");
-    print("length Data: $lengthData");
+    // print("id Channel: $idChannel");
+    // print("tag: $originalTag");
+    // print("length Data: $lengthData");
 
     //1 request
     //2 response
@@ -66,6 +66,7 @@ void receiveData(
     //if is cancel add the original tag to the cancel stream
     if (originalTag.startsWith('3')) {
       connHandler.cancel.add(originalTag.substring(1));
+      buffer.clear();
       return;
     }
 
