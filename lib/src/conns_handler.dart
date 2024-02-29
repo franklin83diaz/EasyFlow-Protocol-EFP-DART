@@ -36,7 +36,7 @@ class ConnsHandler {
   ConnHandler get(String tag) {
     return _connsHandler.firstWhere(
       (element) => element.tag == tag,
-      orElse: () => ConnHandler('', (f, t) {}),
+      orElse: () => ConnHandler('', (f, t, i) {}),
     );
   }
 
@@ -59,14 +59,14 @@ class ConnsHandler {
   }
 }
 
-typedef ActionFunc = void Function(ConnHandler, String);
+typedef ActionFunc = void Function(ConnHandler, String, int);
 
 class ConnHandler {
   final String _tag;
   final ActionFunc _function;
   final StreamController<String> cancel = StreamController.broadcast();
 
-  List<int> data = [];
+  Map<int, List<int>> data = {};
 
   ConnHandler(this._tag, this._function) {
     if (_tag.length > 16) {
@@ -87,5 +87,9 @@ class ConnHandler {
   @override
   String toString() {
     return _tag;
+  }
+
+  void dispose() {
+    cancel.close();
   }
 }

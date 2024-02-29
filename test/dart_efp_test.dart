@@ -10,13 +10,13 @@ void main() {
   group('Tags', () {
     test('addTag', () {
       final connsHandler = dart_efp.ConnsHandler();
-      final tag01 = dart_efp.ConnHandler('tag01', (f, t) {});
+      final tag01 = dart_efp.ConnHandler('tag01', (f, t, i) {});
       expect(connsHandler.add(tag01), isA<dart_efp.ConnHandler>());
     });
 
     test('Get new Tag', () {
       final connsHandler = dart_efp.ConnsHandler();
-      final reqLogin = connsHandler.req("login", (f, t) {});
+      final reqLogin = connsHandler.req("login", (f, t, i) {});
       expect(reqLogin, isNot(null));
       expect(connsHandler.add(reqLogin), isNot(null));
       expect(connsHandler.add(reqLogin), isNot(null));
@@ -46,8 +46,8 @@ void main() {
       efp.receive(connsHandler);
       await Future.delayed(Duration(seconds: 1));
       efp.send(utf8.encode('{"request":"ok"}'), 'test-request');
-      var reqLogin = connsHandler.req("login", (connHandler, tag) {
-        print(utf8.decode(connHandler.data));
+      var reqLogin = connsHandler.req("login", (connHandler, tag, id) {
+        print(utf8.decode(connHandler.data[id]!));
       });
       efp.send(utf8.encode('{"request2":"ok2"}'), reqLogin.tag);
       await Future.delayed(Duration(seconds: 5));

@@ -29,10 +29,10 @@ void server() async {
 
     //handle login process tag login from client in this case
     // validate user and password.
-    final login = ConnHandler('login', (connHandler, tag) {
-      final data = json.decode(utf8.decode(connHandler.data));
+    final login = ConnHandler('login', (connHandler, tag, id) {
+      final data = json.decode(utf8.decode(connHandler.data[id]!));
       //remove the data from the connHandler
-      connHandler.data = [];
+      connHandler.data.remove(id);
 
       if (data["user"] == "pepe" && data["password"] == "123") {
         efp.send(utf8.encode('{"logged": true}'), tag);
@@ -44,14 +44,15 @@ void server() async {
 
     //handle history process tag history from client in this case
     // process the history request.
-    final history = ConnHandler('history', (connHandler, tag) async {
-      final data = json.decode(utf8.decode(connHandler.data));
+    final history = ConnHandler('history', (connHandler, tag, id) async {
+      final data = json.decode(utf8.decode(connHandler.data[id]!));
       //remove the data from the connHandler
-      connHandler.data = [];
+      connHandler.data.remove(id);
       final start = data["start"];
       final end = data["end"];
       bool isCancel = false;
       connHandler.cancel.stream.listen((tagCanceled) {
+        print("tagCanceled: $tagCanceled");
         if (tagCanceled == tag.substring(1)) {
           isCancel = true;
         }
@@ -85,8 +86,8 @@ void client() async {
   efp.receive(connsHandler);
 
   //login
-  final login = connsHandler.req("login", (connHandler, tag) {
-    Map data = json.decode(utf8.decode(connHandler.data));
+  final login = connsHandler.req("login", (connHandler, tag, id) {
+    Map data = json.decode(utf8.decode(connHandler.data[id]!));
     if (data["logged"]) {
       print("You are logged");
     }
@@ -97,8 +98,8 @@ void client() async {
   efp.send(credential, login.tag, action: 1);
 
   //History
-  var history = connsHandler.req("history", (connHandler, tag) async {
-    Map data = json.decode(utf8.decode(connHandler.data));
+  var history = connsHandler.req("history", (connHandler, tag, id) async {
+    Map data = json.decode(utf8.decode(connHandler.data[id]!));
     print("Client Data: ${data["data"]}");
   });
 
@@ -106,13 +107,22 @@ void client() async {
   efp.send(utf8.encode('{"start": 1, "end":99}'), history.tag, action: 1);
   await Future.delayed(Duration(seconds: 5));
   //cancel history
+  // efp.send(utf8.encode(''), "test1121545", action: 3);
+
+  //TODO: change send to cancel efp.camcel(tag)
+  efp.send(utf8.encode(''), "arrozconmango", action: 3);
+  //TODO: problem with the cancel  continuous send
+  //await Future.delayed(Duration(seconds: 1));
   efp.send(utf8.encode(''), history.tag, action: 3);
+  // efp.send(utf8.encode(''), history.tag, action: 3);
+  // efp.send(utf8.encode(''), history.tag, action: 3);
 
   //request history less data
   await Future.delayed(Duration(seconds: 1));
-  history = connsHandler.req("history", (connHandler, tag) async {
-    Map data = json.decode(utf8.decode(connHandler.data));
+  history = connsHandler.req("history", (connHandler, tag, id) async {
+    Map data = json.decode(utf8.decode(connHandler.data[id]!));
     print("Client Data: ${data["data"]}");
   });
+  efp.send(utf8.encode('{"start": 10, "end":15}'), history.tag, action: 1);
   efp.send(utf8.encode('{"start": 10, "end":15}'), history.tag, action: 1);
 }

@@ -16,13 +16,13 @@ void receiveData(
     // if is header print the header
 
     // extract the header
-    // final idBytes = availableData.sublist(0, 2);
+    final idBytes = availableData.sublist(0, 2);
     final tagBytes = availableData.sublist(2, 18);
     final lengthBytes = availableData.sublist(18, 22);
-    // final int idChannel = Uint8List.fromList(idBytes)
-    //     .buffer
-    //     .asByteData()
-    //     .getUint16(0, Endian.big);
+    final int idChannel = Uint8List.fromList(idBytes)
+        .buffer
+        .asByteData()
+        .getUint16(0, Endian.big);
     final int lengthData = Uint8List.fromList(lengthBytes)
         .buffer
         .asByteData()
@@ -32,9 +32,9 @@ void receiveData(
     String tag = originalTag;
 
     //Print the header
-    // print("id Channel: $idChannel");
-    // print("tag: $originalTag");
-    // print("length Data: $lengthData");
+    print("id Channel: $idChannel");
+    print("tag: $originalTag");
+    print("length Data: $lengthData");
 
     //1 request
     //2 response
@@ -54,7 +54,7 @@ void receiveData(
 
     ConnHandler connHandler = connsHandler.getAll.firstWhere(
         (element) => element.tag == tag,
-        orElse: () => ConnHandler('', (f, t) {}));
+        orElse: () => ConnHandler('', (f, t, i) {}));
 
     if (connHandler.tag == '') {
       print('Tag not found: $tag');
@@ -65,6 +65,7 @@ void receiveData(
 
     //if is cancel add the original tag to the cancel stream
     if (originalTag.startsWith('3')) {
+      print('Cancel: $originalTag');
       //TODO: separate the cancel stream with spaces o commas for split
       connHandler.cancel.add(originalTag.substring(1));
       buffer.clear();
@@ -80,12 +81,12 @@ void receiveData(
       if (lengthData == 0) {
         //  print('End of Channel $idChannel');
         // run the function with the data and the original tag
-        connHandler.function(connHandler, originalTag);
+        connHandler.function(connHandler, originalTag, idChannel);
       } else {
-        // TODO: maybe data need separate for each chanel or unit
-        // use de id channel to separate the data
-        //
-        connHandler.data.addAll(availableData.sublist(start, totalLengthData));
+        final newData = <int, List<int>>{
+          idChannel: availableData.sublist(start, totalLengthData)
+        };
+        connHandler.data.addEntries(newData.entries);
       }
 
       // remove the processed message from the buffer

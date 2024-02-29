@@ -17,7 +17,8 @@ void main() {
 
       await Future.delayed(Duration(seconds: 1));
 
-      final login = dart_efp.ConnHandler("history", (connHandler, tag) async {
+      final login =
+          dart_efp.ConnHandler("history", (connHandler, tag, id) async {
         bool cancel = false;
         connHandler.cancel.stream.listen((event) {
           cancel = true;
@@ -51,7 +52,7 @@ void main() {
     //  efp.receive(connsHandler);
     await Future.delayed(Duration(seconds: 1));
 
-    final reqHistory = connsHandler.req("history", (connHandler, tag) {
+    final reqHistory = connsHandler.req("history", (connHandler, tag, id) {
       //data history
     });
 
