@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dart_efp/src/conns_handler.dart';
 import 'package:dart_efp/src/utils/tag_bytes_to_string.dart';
+import 'package:dart_efp/src/utils/type_def.dart';
 
 part 'receive.dart';
 part 'send.dart';
@@ -30,6 +31,9 @@ part 'send.dart';
 class Efp {
   final int dmtu;
   final Socket conn;
+  final ConnsHandler hooks = ConnsHandler();
+  final ConnsHandler responseHandler = ConnsHandler();
+
   //this number use 2 bytes max 65535
   int idChannel = 0;
 
@@ -47,6 +51,7 @@ class Efp {
   /// 1 is request
   /// 2 is response
   /// 3 is cancel
+  /// TODO: change send remove int action
   void send(Uint8List data, String tag, {int? action}) {
     idChannel++;
     if (idChannel > 65535) {
@@ -60,6 +65,25 @@ class Efp {
     sendData(data, sub + tag, idChannel, conn, dmtu);
   }
 
+  ConnHandler request(Uint8List data, String tag, ActionFunc funcHandler) {
+    idChannel++;
+    if (idChannel > 65535) {
+      idChannel = 1;
+    }
+    //if tag is more than 7 bytes error
+    if (tag.length > 8) {
+      throw ArgumentError('the string exceeds the maximum size of 8 bytes.');
+    }
+    final respHandler = responseHandler.req(tag, funcHandler);
+    //send with the tag start with 1
+    sendData(data, "1${respHandler.tag}", idChannel, conn, dmtu);
+    return respHandler;
+  }
+
+  //TODO: Add Cancel
+  //TODO: Add Response Handler
+  //TODO: ADD requestPoint 8 bytes tag
+
   //receive data
   void receive(ConnsHandler connsHandler) {
     final buffer = BytesBuilder();
@@ -72,6 +96,26 @@ class Efp {
       print('Error: $error');
       conn.close();
     });
+  }
+
+  // Add a hook to the Efp
+  addHook(ConnHandler connHandler) {
+    hooks.add(connHandler);
+  }
+
+  //get all hooks
+  List<ConnHandler> getHooks() {
+    return hooks.getAll;
+  }
+
+  //get a hook by tag
+  ConnHandler getHook(String tag) {
+    return hooks.get(tag);
+  }
+
+  //remove a hook
+  void removeHook(ConnHandler connHandler) {
+    hooks.remove(connHandler);
   }
 
   /// Close the connection

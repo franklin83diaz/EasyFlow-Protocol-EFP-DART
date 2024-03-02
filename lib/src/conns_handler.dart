@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dart_efp/src/utils/type_def.dart';
+
 class ConnsHandler {
   final List<ConnHandler> _connsHandler = [];
 
@@ -58,8 +60,6 @@ class ConnsHandler {
     return _addReq(ConnHandler("$subTag$tag", function));
   }
 }
-
-typedef ActionFunc = void Function(ConnHandler, String, int);
 
 class ConnHandler {
   final String _tag;
