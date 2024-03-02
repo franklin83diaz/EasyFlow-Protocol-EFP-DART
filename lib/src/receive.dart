@@ -12,8 +12,7 @@ void receiveData(
   // header is complete 22 bytes
   while (buffer.length >= 22) {
     // Convert the buffer to a list of bytes
-    var availableData = buffer.toBytes();
-    // if is header print the header
+    var availableData = buffer.takeBytes();
 
     // extract the header
     final idBytes = availableData.sublist(0, 2);
@@ -32,9 +31,9 @@ void receiveData(
     String tag = originalTag;
 
     //Print the header
-    print("id Channel: $idChannel");
-    print("tag: $originalTag");
-    print("length Data: $lengthData");
+    // print("id Channel: $idChannel");
+    // print("tag: $originalTag");
+    // print("length Data: $lengthData");
 
     //1 request
     //2 response
@@ -59,17 +58,23 @@ void receiveData(
     if (connHandler.tag == '') {
       print('Tag not found: $tag');
       print("in List: ${connsHandler.getAll}");
-      buffer.clear();
-      return;
+
+      // add the rest of the buffer to the buffer
+      if (availableData.length > 22) {
+        buffer.add(availableData.sublist(22));
+      }
+      continue;
     }
 
     //if is cancel add the original tag to the cancel stream
     if (originalTag.startsWith('3')) {
-      print('Cancel: $originalTag');
-      //TODO: separate the cancel stream with spaces o commas for split
       connHandler.cancel.add(originalTag.substring(1));
-      buffer.clear();
-      return;
+
+      // add the rest of the buffer to the buffer
+      if (availableData.length > 22) {
+        buffer.add(availableData.sublist(22));
+      }
+      continue;
     }
 
     //set the total length of the message
@@ -89,8 +94,7 @@ void receiveData(
         connHandler.data.addEntries(newData.entries);
       }
 
-      // remove the processed message from the buffer
-      buffer.clear();
+      // add the rest of the buffer to the buffer
       if (availableData.length > totalLengthData) {
         buffer.add(availableData.sublist(totalLengthData));
       }

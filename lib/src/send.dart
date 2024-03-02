@@ -41,6 +41,10 @@ void sendData(
         [...bytesId, ...bytesTag, ...bytesLengthData, ...data]);
     //Write data to the socket
     conn.add(combinedData);
+    //if is cancel no send end channel
+    if (tag.startsWith("3")) {
+      return;
+    }
     //send end channel
     final end = Uint8List.fromList([...bytesId, ...bytesTag, ...Uint8List(4)]);
     conn.add(end);

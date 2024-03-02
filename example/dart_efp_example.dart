@@ -52,7 +52,6 @@ void server() async {
       final end = data["end"];
       bool isCancel = false;
       connHandler.cancel.stream.listen((tagCanceled) {
-        print("tagCanceled: $tagCanceled");
         if (tagCanceled == tag.substring(1)) {
           isCancel = true;
         }
@@ -107,15 +106,15 @@ void client() async {
   efp.send(utf8.encode('{"start": 1, "end":99}'), history.tag, action: 1);
   await Future.delayed(Duration(seconds: 5));
   //cancel history
-  // efp.send(utf8.encode(''), "test1121545", action: 3);
+  efp.send(utf8.encode(''), "test1121545", action: 3);
 
   //TODO: change send to cancel efp.camcel(tag)
   efp.send(utf8.encode(''), "arrozconmango", action: 3);
-  //TODO: problem with the cancel  continuous send
-  //await Future.delayed(Duration(seconds: 1));
+
+  // await Future.delayed(Duration(seconds: 1));
   efp.send(utf8.encode(''), history.tag, action: 3);
-  // efp.send(utf8.encode(''), history.tag, action: 3);
-  // efp.send(utf8.encode(''), history.tag, action: 3);
+  efp.send(utf8.encode(''), history.tag, action: 3);
+  efp.send(utf8.encode(''), history.tag, action: 3);
 
   //request history less data
   await Future.delayed(Duration(seconds: 1));
